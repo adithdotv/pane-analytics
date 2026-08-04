@@ -3,6 +3,8 @@ import psycopg2
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+import redis
+import json
 
 load_dotenv()  # reads the .env file into environment variables
 
@@ -14,6 +16,8 @@ app.add_middleware(
     allow_methods=["POST"],
     allow_headers=["*"],
 )
+
+r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
 
 def get_connection():
     return psycopg2.connect(
@@ -28,18 +32,14 @@ def get_connection():
 async def collect(request: Request):
     data = await request.json()
 
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute(
-        "INSERT INTO pageviews (url, referrer) VALUES (%s, %s)",
-        (data.get("url"), data.get("referrer")),
-    )
-    conn.commit()
-    cur.close()
-    conn.close()
+    event = {
+        "url": data.get("url"),
+        "referrer": data.get("referrer"),
+    }
+    r.lpush("pageview_queue", json.dumps(event))
 
     return {"status": "ok"}
-
+    
 
 @app.get("/stats/top-pages")
 async def top_pages():
