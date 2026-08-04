@@ -39,3 +39,39 @@ async def collect(request: Request):
     conn.close()
 
     return {"status": "ok"}
+
+
+@app.get("/stats/top-pages")
+async def top_pages():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT url, COUNT(*) as visits
+        FROM pageviews
+        GROUP BY url
+        ORDER BY visits DESC
+        LIMIT 10
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return [{"url": row[0], "visits": row[1]} for row in rows]
+
+
+@app.get("/stats/top-referrers")
+async def top_referrers():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT referrer, COUNT(*) as visits
+        FROM pageviews
+        GROUP BY referrer
+        ORDER BY visits DESC
+        LIMIT 10
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return [{"referrer": row[0], "visits": row[1]} for row in rows]
