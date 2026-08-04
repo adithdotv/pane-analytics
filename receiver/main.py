@@ -75,3 +75,19 @@ async def top_referrers():
     conn.close()
 
     return [{"referrer": row[0], "visits": row[1]} for row in rows]
+
+@app.get("/stats/visits-over-time")
+async def visits_over_time():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT DATE(created_at) as day, COUNT(*) as visits
+        FROM pageviews
+        GROUP BY day
+        ORDER BY day ASC
+    """)
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return [{"day": str(row[0]), "visits": row[1]} for row in rows]
