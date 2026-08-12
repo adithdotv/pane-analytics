@@ -1,5 +1,5 @@
 (function () {
-  fetch("http://127.0.0.1:8000/collect", {
+  fetch("https://pane-analytics.in/collect", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
