@@ -8,6 +8,21 @@ from security import get_current_user
 router = APIRouter(prefix="/sites", tags=["sites"])
 
 
+@router.get("")
+async def list_sites(user_id: int = Depends(get_current_user)):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "SELECT id, name, site_key FROM sites WHERE user_id = %s ORDER BY created_at",
+        (user_id,),
+    )
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return [{"id": row[0], "name": row[1], "site_key": row[2]} for row in rows]
+
+
 @router.post("")
 async def create_site(name: str, user_id: int = Depends(get_current_user)):
     site_key = "pk_" + secrets.token_hex(12)
