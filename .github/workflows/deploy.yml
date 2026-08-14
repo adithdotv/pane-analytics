@@ -84,6 +84,7 @@ jobs:
           DB_PASSWORD: testpassword
           DB_HOST: localhost
           DB_PORT: 5432
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: pytest -v
 
   deploy:
