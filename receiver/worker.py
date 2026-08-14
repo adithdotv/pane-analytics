@@ -3,7 +3,7 @@ import time
 
 import psycopg2
 
-from database import get_connection
+from database import create_tables, get_connection
 from redis_client import r
 
 BATCH_SIZE = 500
@@ -35,6 +35,7 @@ def insert_events_individually(batch, cur):
 
 
 def run_worker():
+    create_tables()
     print("Worker started, watching queue...")
     while True:
         batch = []
