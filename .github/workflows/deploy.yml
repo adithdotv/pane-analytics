@@ -1,11 +1,67 @@
-name: Deploy to Production
+name: Test and Deploy
 
 on:
   push:
     branches: [main]
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpassword
+          POSTGRES_DB: pane_analytics_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        working-directory: receiver
+        run: pip install -r requirements.txt
+
+      - name: Create test table
+        env:
+          PGPASSWORD: testpassword
+        run: |
+          sudo apt-get install -y postgresql-client
+          psql -h localhost -U postgres -d pane_analytics_test -c "
+            CREATE TABLE pageviews (
+              id SERIAL PRIMARY KEY,
+              url TEXT NOT NULL,
+              referrer TEXT,
+              country TEXT,
+              device_type TEXT,
+              created_at TIMESTAMP DEFAULT NOW()
+            );
+          "
+
+      - name: Run tests
+        working-directory: receiver
+        env:
+          DB_NAME: pane_analytics_test
+          DB_USER: postgres
+          DB_PASSWORD: testpassword
+          DB_HOST: localhost
+          DB_PORT: 5432
+        run: pytest -v
+
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - name: Deploy over SSH
