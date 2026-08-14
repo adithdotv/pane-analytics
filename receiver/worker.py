@@ -1,24 +1,38 @@
-import os
-import time
 import json
-import redis
+import time
+
 import psycopg2
-from dotenv import load_dotenv
 
-load_dotenv()
-
-r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
-
-def get_connection():
-    return psycopg2.connect(
-        dbname=os.getenv("DB_NAME"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        host=os.getenv("DB_HOST"),
-        port=os.getenv("DB_PORT"),
-    )
+from database import get_connection
+from redis_client import r
 
 BATCH_SIZE = 500
+
+
+def process_batch(batch, cur):
+    try:
+        cur.executemany(
+            "INSERT INTO pageviews (site_id, url, referrer) VALUES (%s, %s, %s)",
+            [(event.get("site_id"), event.get("url"), event.get("referrer")) for event in batch],
+        )
+    except psycopg2.Error:
+        cur.connection.rollback()
+        insert_events_individually(batch, cur)
+
+
+# Falls back to one insert per event so a single malformed event can't discard the whole batch.
+def insert_events_individually(batch, cur):
+    for event in batch:
+        try:
+            cur.execute(
+                "INSERT INTO pageviews (site_id, url, referrer) VALUES (%s, %s, %s)",
+                (event.get("site_id"), event.get("url"), event.get("referrer")),
+            )
+            cur.connection.commit()
+        except psycopg2.Error as error:
+            cur.connection.rollback()
+            print(f"Skipping malformed pageview event {event!r}: {error}")
+
 
 def run_worker():
     print("Worker started, watching queue...")
@@ -34,10 +48,7 @@ def run_worker():
         if batch:
             conn = get_connection()
             cur = conn.cursor()
-            cur.executemany(
-                "INSERT INTO pageviews (url, referrer) VALUES (%s, %s)",
-                [(event["url"], event["referrer"]) for event in batch],
-            )
+            process_batch(batch, cur)
             conn.commit()
             cur.close()
             conn.close()
@@ -48,12 +59,3 @@ def run_worker():
 
 if __name__ == "__main__":
     run_worker()
-
-
-
-
-def process_batch(batch, cur):
-    cur.executemany(
-        "INSERT INTO pageviews (url, referrer) VALUES (%s, %s)",
-        [(event["url"], event["referrer"]) for event in batch],
-    )
