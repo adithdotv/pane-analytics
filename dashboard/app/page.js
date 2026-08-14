@@ -1,13 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 
+import CreateSiteForm from "@/components/CreateSiteForm";
+import SiteSwitcher from "@/components/SiteSwitcher";
+import { useDashboard } from "@/hooks/useDashboard";
+
 const display = Space_Grotesk({ subsets: ["latin"], weight: ["500", "700"], variable: "--font-display" });
 const mono = JetBrains_Mono({ subsets: ["latin"], weight: ["500", "700"], variable: "--font-mono" });
-
-const API_BASE = "https://pane-analytics.in";
 
 function PaneMark() {
   return (
@@ -30,7 +32,7 @@ function StatBlock({ value, label }) {
   );
 }
 
-function EmptyState() {
+function EmptyState({ siteKey }) {
   return (
     <div className="rounded-xl border border-[#E4E9EF] bg-white p-8 text-center">
       <p className={`${display.className} text-[18px] font-medium text-[#1B2430] mb-2`}>
@@ -40,27 +42,31 @@ function EmptyState() {
         Add this snippet to your site to start seeing data here.
       </p>
       <code className="block bg-[#F7F9FB] border border-[#E4E9EF] rounded-lg px-4 py-3 text-[13px] text-[#2E6FED] text-left overflow-x-auto">
-        {'<script src="https://pane-analytics.in/tracker.js"></script>'}
+        {`<script src="https://pane-analytics.in/tracker.js" data-site="${siteKey}"></script>`}
       </code>
     </div>
   );
 }
 
 export default function Dashboard() {
-  const [topPages, setTopPages] = useState([]);
-  const [topReferrers, setTopReferrers] = useState([]);
-  const [visitsOverTime, setVisitsOverTime] = useState([]);
-
-  useEffect(() => {
-    fetch(`${API_BASE}/stats/top-pages`).then((r) => r.json()).then(setTopPages);
-    fetch(`${API_BASE}/stats/top-referrers`).then((r) => r.json()).then(setTopReferrers);
-    fetch(`${API_BASE}/stats/visits-over-time`).then((r) => r.json()).then(setVisitsOverTime);
-  }, []);
+  const { isLoading, error, sites, selectedSiteId, selectSite, stats, addSite, logout } = useDashboard();
+  const [isAddingSite, setIsAddingSite] = useState(false);
+  const { topPages, topReferrers, visitsOverTime } = stats;
 
   const todayVisits = visitsOverTime.length
     ? visitsOverTime[visitsOverTime.length - 1].visits
     : 0;
   const hasData = topPages.length || topReferrers.length || visitsOverTime.length;
+  const selectedSite = sites.find((s) => s.id === selectedSiteId);
+
+  if (isLoading) {
+    return <div className="min-h-screen bg-[#F7F9FB]" />;
+  }
+
+  async function handleAddSite(name) {
+    await addSite(name);
+    setIsAddingSite(false);
+  }
 
   return (
     <div className={`${display.variable} ${mono.variable} min-h-screen bg-[#F7F9FB] px-6 py-10 sm:px-10`}>
@@ -75,19 +81,35 @@ export default function Dashboard() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-[13px] text-[#5B6B7C]">pane-analytics.in</span>
-            <div className="flex items-center gap-1.5">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#17B893] opacity-60"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#17B893]"></span>
-              </span>
-              <span className="text-[13px] text-[#5B6B7C]">Live</span>
-            </div>
+            {sites.length > 0 && (
+              <>
+                <SiteSwitcher sites={sites} selectedSiteId={selectedSiteId} onSelect={selectSite} />
+                <button
+                  onClick={() => setIsAddingSite((current) => !current)}
+                  className="text-[13px] text-[#5B6B7C] hover:text-[#1B2430]"
+                >
+                  + New site
+                </button>
+              </>
+            )}
+            <button onClick={logout} className="text-[13px] text-[#5B6B7C] hover:text-[#1B2430]">
+              Log out
+            </button>
           </div>
         </div>
 
-        {!hasData ? (
-          <EmptyState />
+        {error && <p className="mb-4 text-[13px] text-[#D64545]">{error}</p>}
+
+        {isAddingSite && (
+          <div className="mb-6">
+            <CreateSiteForm onCreate={handleAddSite} onCancel={() => setIsAddingSite(false)} />
+          </div>
+        )}
+
+        {sites.length === 0 ? (
+          <CreateSiteForm onCreate={addSite} />
+        ) : !hasData ? (
+          <EmptyState siteKey={selectedSite?.site_key} />
         ) : (
           <>
             {/* Hero stats */}
