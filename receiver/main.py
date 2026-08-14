@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 import redis
 import json
+from pydantic import BaseModel
 
 load_dotenv()  # reads the .env file into environment variables
 
@@ -28,16 +29,14 @@ def get_connection():
         port=os.getenv("DB_PORT"),
     )
 
+
+class PageviewEvent(BaseModel):
+    url: str
+    referrer: str = "direct"
+
 @app.post("/collect")
-async def collect(request: Request):
-    data = await request.json()
-
-    event = {
-        "url": data.get("url"),
-        "referrer": data.get("referrer"),
-    }
-    r.lpush("pageview_queue", json.dumps(event))
-
+async def collect(event: PageviewEvent):
+    r.lpush("pageview_queue", event.model_dump_json())
     return {"status": "ok"}
     
 

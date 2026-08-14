@@ -45,5 +45,15 @@ def run_worker():
 
         time.sleep(2)  # wait a bit before checking the queue again
 
+
 if __name__ == "__main__":
     run_worker()
+
+
+
+
+def process_batch(batch, cur):
+    cur.executemany(
+        "INSERT INTO pageviews (url, referrer) VALUES (%s, %s)",
+        [(event["url"], event["referrer"]) for event in batch],
+    )
