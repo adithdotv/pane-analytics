@@ -44,19 +44,35 @@ jobs:
         working-directory: receiver
         run: pip install -r requirements.txt
 
-      - name: Create test table
+      - name: Create test tables
         env:
           PGPASSWORD: testpassword
         run: |
           sudo apt-get install -y postgresql-client
           psql -h localhost -U postgres -d pane_analytics_test -c "
+            CREATE TABLE users (
+              id SERIAL PRIMARY KEY,
+              email TEXT NOT NULL UNIQUE,
+              hashed_password TEXT NOT NULL,
+              created_at TIMESTAMP DEFAULT NOW()
+            );
+
+            CREATE TABLE sites (
+              id SERIAL PRIMARY KEY,
+              user_id INTEGER NOT NULL REFERENCES users(id),
+              name TEXT NOT NULL,
+              site_key TEXT NOT NULL UNIQUE,
+              created_at TIMESTAMP DEFAULT NOW()
+            );
+
             CREATE TABLE pageviews (
               id SERIAL PRIMARY KEY,
               url TEXT NOT NULL,
               referrer TEXT,
               country TEXT,
               device_type TEXT,
-              created_at TIMESTAMP DEFAULT NOW()
+              created_at TIMESTAMP DEFAULT NOW(),
+              site_id INTEGER REFERENCES sites(id)
             );
           "
 
