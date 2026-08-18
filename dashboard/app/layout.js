@@ -1,3 +1,4 @@
+import Script from "next/script";
 import { Space_Grotesk, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -28,6 +29,11 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body className={`${display.variable} ${mono.variable}`}>
         {children}
+        <Script
+          src="https://pane-analytics.in/tracker.js"
+          data-site="pk_2da04542f744f8d90d614721"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
