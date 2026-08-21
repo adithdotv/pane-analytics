@@ -60,7 +60,7 @@ function NavBar() {
       </div>
       <nav className="hidden items-center gap-6 sm:flex">
         <a href="#features" className="text-[13px] text-[#5B6B7C] hover:text-[#1B2430]">Features</a>
-        <a href="#pricing" className="text-[13px] text-[#5B6B7C] hover:text-[#1B2430]">Pricing</a>
+        <Link href="/pricing" className="text-[13px] text-[#5B6B7C] hover:text-[#1B2430]">Pricing</Link>
         <a href="#faq" className="text-[13px] text-[#5B6B7C] hover:text-[#1B2430]">FAQ</a>
       </nav>
       <div className="flex items-center gap-4">
@@ -189,7 +189,7 @@ function PricingTeaser() {
         Free for your first site, up to 10K views/month.
         Paid plans start at ₹299/month — less than a coffee subscription.
       </p>
-      <Link href="/signup" className="mt-6 inline-block text-[14px] font-medium text-[#2E6FED]">
+      <Link href="/pricing" className="mt-6 inline-block text-[14px] font-medium text-[#2E6FED]">
         See full pricing →
       </Link>
     </section>
