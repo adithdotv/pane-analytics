@@ -6,13 +6,13 @@ const display = Space_Grotesk({ subsets: ["latin"], weight: ["500", "700"], vari
 const mono = JetBrains_Mono({ subsets: ["latin"], weight: ["500", "700"], variable: "--font-mono" });
 
 export const metadata = {
-  title: "Pane Analytics — privacy-friendly website analytics",
+  title: "Pane Analytics — website analytics that don't cost more than your hosting",
   description:
-    "Self-hosted, cookie-free website analytics. No personal data stored, no cross-site tracking — just visits, top pages, and referrers.",
+    "Simple, cookie-free analytics for indie developers and small teams. No bloated dashboards, no $9/month for 10K pageviews. Self-hosted or cloud.",
   metadataBase: new URL("https://pane-analytics.in"),
   openGraph: {
     title: "Pane Analytics",
-    description: "Privacy-friendly, self-hosted website analytics. No cookies, no tracking.",
+    description: "Simple, cookie-free website analytics that doesn't cost more than your hosting.",
     url: "https://pane-analytics.in",
     siteName: "Pane Analytics",
     type: "website",
@@ -20,7 +20,7 @@ export const metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Pane Analytics",
-    description: "Privacy-friendly, self-hosted website analytics. No cookies, no tracking.",
+    description: "Simple, cookie-free website analytics that doesn't cost more than your hosting.",
   },
 };
 

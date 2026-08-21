@@ -14,7 +14,7 @@ export default function SignupPage() {
     await signup(email, password);
     const { access_token } = await login(email, password);
     setToken(access_token);
-    router.replace("/");
+    router.replace("/dashboard");
   }
 
   return (

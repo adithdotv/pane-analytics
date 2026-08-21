@@ -13,7 +13,7 @@ export default function LoginPage() {
   async function handleLogin(email, password) {
     const { access_token } = await login(email, password);
     setToken(access_token);
-    router.replace("/");
+    router.replace("/dashboard");
   }
 
   return (
