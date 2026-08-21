@@ -45,7 +45,7 @@ function NavBar() {
       <div className="flex items-center gap-4">
         <Link href="/login" className="text-[13px] text-[#5B6B7C] hover:text-[#1B2430]">Log in</Link>
         <Link
-          href="/signup"
+          href="/login"
           className="rounded-lg bg-[#2E6FED] px-4 py-2 text-[13px] font-medium text-white hover:bg-[#2660D1]"
         >
           Start free
@@ -109,7 +109,7 @@ function FooterCTA() {
         Still comparing? Try it free — no card, no commitment.
       </h2>
       <Link
-        href="/signup"
+        href="/login"
         className="mt-6 inline-block rounded-lg bg-[#2E6FED] px-6 py-3 text-[14px] font-medium text-white hover:bg-[#2660D1]"
       >
         Start free

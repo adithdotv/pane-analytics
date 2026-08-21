@@ -15,7 +15,7 @@ export function formatApiError(error) {
   return "Something went wrong. Try again.";
 }
 
-async function request(path, { method = "GET", token, params, body } = {}) {
+async function request(path, { method = "GET", params, body } = {}) {
   const url = new URL(`${API_BASE}${path}`);
   if (params) {
     Object.entries(params).forEach(([key, value]) => url.searchParams.set(key, value));
@@ -23,11 +23,11 @@ async function request(path, { method = "GET", token, params, body } = {}) {
 
   const headers = {};
   if (body) headers["Content-Type"] = "application/json";
-  if (token) headers.Authorization = `Bearer ${token}`;
 
   const response = await fetch(url, {
     method,
     headers,
+    credentials: "include",
     body: body ? JSON.stringify(body) : undefined,
   });
 
@@ -40,30 +40,38 @@ async function request(path, { method = "GET", token, params, body } = {}) {
   return data;
 }
 
-export function signup(email, password) {
-  return request("/auth/signup", { method: "POST", body: { email, password } });
+export function requestOtp(email) {
+  return request("/auth/request-otp", { method: "POST", body: { email } });
 }
 
-export function login(email, password) {
-  return request("/auth/login", { method: "POST", body: { email, password } });
+export function verifyOtp(email, code) {
+  return request("/auth/verify-otp", { method: "POST", body: { email, code } });
 }
 
-export function listSites(token) {
-  return request("/sites", { token });
+export function getCurrentUser() {
+  return request("/auth/me");
 }
 
-export function createSite(token, name) {
-  return request("/sites", { method: "POST", token, params: { name } });
+export function logout() {
+  return request("/auth/logout", { method: "POST" });
 }
 
-export function getTopPages(token, siteId) {
-  return request("/stats/top-pages", { token, params: { site_id: siteId } });
+export function listSites() {
+  return request("/sites");
 }
 
-export function getTopReferrers(token, siteId) {
-  return request("/stats/top-referrers", { token, params: { site_id: siteId } });
+export function createSite(name) {
+  return request("/sites", { method: "POST", params: { name } });
 }
 
-export function getVisitsOverTime(token, siteId) {
-  return request("/stats/visits-over-time", { token, params: { site_id: siteId } });
+export function getTopPages(siteId) {
+  return request("/stats/top-pages", { params: { site_id: siteId } });
+}
+
+export function getTopReferrers(siteId) {
+  return request("/stats/top-referrers", { params: { site_id: siteId } });
+}
+
+export function getVisitsOverTime(siteId) {
+  return request("/stats/visits-over-time", { params: { site_id: siteId } });
 }
