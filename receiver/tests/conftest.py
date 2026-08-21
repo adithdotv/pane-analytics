@@ -7,7 +7,6 @@ from fastapi.testclient import TestClient
 
 from database import get_connection
 from main import app
-from security import hash_password
 
 
 @pytest.fixture
@@ -21,8 +20,8 @@ def site():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO users (email, hashed_password) VALUES (%s, %s) RETURNING id",
-        ("test-user@example.com", hash_password("irrelevant")),
+        "INSERT INTO users (email) VALUES (%s) RETURNING id",
+        ("test-user@example.com",),
     )
     user_id = cur.fetchone()[0]
     cur.execute(

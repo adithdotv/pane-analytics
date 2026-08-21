@@ -21,9 +21,12 @@ def create_tables():
         CREATE TABLE IF NOT EXISTS users (
             id SERIAL PRIMARY KEY,
             email TEXT NOT NULL UNIQUE,
-            hashed_password TEXT NOT NULL,
             created_at TIMESTAMP DEFAULT NOW()
         );
+
+        ALTER TABLE users DROP COLUMN IF EXISTS hashed_password;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP;
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at TIMESTAMP;
 
         CREATE TABLE IF NOT EXISTS sites (
             id SERIAL PRIMARY KEY,

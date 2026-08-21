@@ -1,9 +1,10 @@
+from config import COOKIE_NAME
 from security import create_access_token
 
 
 def test_list_sites_returns_owned_sites(client, site):
     token = create_access_token(user_id=site["user_id"])
-    response = client.get("/sites", headers={"Authorization": f"Bearer {token}"})
+    response = client.get("/sites", cookies={COOKIE_NAME: token})
 
     assert response.status_code == 200
     data = response.json()
@@ -14,4 +15,4 @@ def test_list_sites_returns_owned_sites(client, site):
 
 def test_list_sites_requires_auth(client):
     response = client.get("/sites")
-    assert response.status_code == 422
+    assert response.status_code == 401

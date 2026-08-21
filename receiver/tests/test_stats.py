@@ -1,5 +1,6 @@
 import pytest
 
+from config import COOKIE_NAME
 from database import get_connection
 from security import create_access_token
 
@@ -35,7 +36,7 @@ def test_top_pages_counts_correctly(client, site):
     response = client.get(
         "/stats/top-pages",
         params={"site_id": site["id"]},
-        headers={"Authorization": f"Bearer {token}"},
+        cookies={COOKIE_NAME: token},
     )
     data = response.json()
 
@@ -50,7 +51,7 @@ def test_top_pages_rejects_other_users_site(client, site):
     response = client.get(
         "/stats/top-pages",
         params={"site_id": site["id"]},
-        headers={"Authorization": f"Bearer {other_users_token}"},
+        cookies={COOKIE_NAME: other_users_token},
     )
 
     assert response.status_code == 403
