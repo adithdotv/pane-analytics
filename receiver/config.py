@@ -18,6 +18,9 @@ OTP_TTL_SECONDS = 300  # how long a code stays valid
 OTP_RESEND_COOLDOWN_SECONDS = 60  # minimum gap between two codes for the same email
 OTP_MAX_ATTEMPTS = 5  # wrong guesses allowed before a code is invalidated
 
+OTP_BYPASS_EMAIL = os.getenv("OTP_BYPASS_EMAIL")
+OTP_BYPASS_CODE = os.getenv("OTP_BYPASS_CODE")
+
 SMTP_HOST = os.getenv("SMTP_HOST")
 SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
 SMTP_USER = os.getenv("SMTP_USER")

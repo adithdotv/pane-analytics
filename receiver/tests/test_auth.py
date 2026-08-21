@@ -1,8 +1,9 @@
 import pytest
 
+import otp_service
 from config import COOKIE_NAME
 from database import get_connection
-from otp_service import ATTEMPTS_KEY, CODE_KEY, COOLDOWN_KEY
+from otp_service import ATTEMPTS_KEY, BYPASS_ATTEMPTS_KEY, CODE_KEY, COOLDOWN_KEY
 from redis_client import r
 
 TEST_EMAIL_DOMAIN = "@otp-test.example"
@@ -108,6 +109,43 @@ def test_me_returns_current_user(client):
 def test_me_requires_auth(client):
     response = client.get("/auth/me")
     assert response.status_code == 401
+
+
+def test_bypass_code_logs_in_configured_email(client, monkeypatch):
+    email = "bypass@otp-test.example"
+    monkeypatch.setattr(otp_service, "OTP_BYPASS_EMAIL", email)
+    monkeypatch.setattr(otp_service, "OTP_BYPASS_CODE", "123123")
+    r.delete(BYPASS_ATTEMPTS_KEY.format(email=email))
+
+    response = client.post("/auth/verify-otp", json={"email": email, "code": "123123"})
+
+    assert response.status_code == 200
+    assert COOKIE_NAME in response.cookies
+
+
+def test_bypass_code_does_not_work_for_other_emails(client, monkeypatch):
+    monkeypatch.setattr(otp_service, "OTP_BYPASS_EMAIL", "bypass-owner@otp-test.example")
+    monkeypatch.setattr(otp_service, "OTP_BYPASS_CODE", "123123")
+
+    response = client.post(
+        "/auth/verify-otp", json={"email": "someone-else@otp-test.example", "code": "123123"}
+    )
+
+    assert response.status_code == 401
+
+
+def test_bypass_code_locks_out_after_max_attempts(client, monkeypatch):
+    email = "bypass-lockout@otp-test.example"
+    monkeypatch.setattr(otp_service, "OTP_BYPASS_EMAIL", email)
+    monkeypatch.setattr(otp_service, "OTP_BYPASS_CODE", "123123")
+    r.delete(BYPASS_ATTEMPTS_KEY.format(email=email))
+
+    for _ in range(5):
+        client.post("/auth/verify-otp", json={"email": email, "code": "000000"})
+
+    response = client.post("/auth/verify-otp", json={"email": email, "code": "123123"})
+    assert response.status_code == 401
+    r.delete(BYPASS_ATTEMPTS_KEY.format(email=email))
 
 
 def test_logout_clears_cookie(client):
